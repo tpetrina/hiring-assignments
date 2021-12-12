@@ -19,7 +19,7 @@ spec:
           - name: APP_ServiceUri
             value: http://host.minikube.internal:3000/
           image: app:latest
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:
               path: /health/live

@@ -21,8 +21,17 @@ app.MapGet("/version", () =>
 app.MapGet("/{id}", async (string id) =>
 {
     Validators.CheckId(id);
-    var message = await serviceProxy.GetAsync($"{serviceUri}{id}");
-    return Results.Stream(await message.Content.ReadAsStreamAsync(), message.Content.Headers.ContentType?.ToString());
+
+    try
+    {
+        var message = await serviceProxy.GetAsync($"{serviceUri}{id}");
+        return Results.Stream(await message.Content.ReadAsStreamAsync(), message.Content.Headers.ContentType?.ToString());
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "Unable to reach service.");
+        return Results.StatusCode(503);
+    }
 });
 
 app.MapHealthChecks("/health/ready", new HealthCheckOptions()
