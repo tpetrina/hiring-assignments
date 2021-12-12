@@ -1,7 +1,11 @@
 using System.Reflection;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Prometheus;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog((ctx,lc)=>lc
+    .WriteTo.Console());
 builder.Services.AddHealthChecks();
 builder.Configuration.AddEnvironmentVariables(prefix: "APP_");
 var app = builder.Build();
@@ -9,6 +13,10 @@ var app = builder.Build();
 var serviceUri = app.Configuration["ServiceUri"];
 var serviceProxy = new HttpClient();
 app.Logger.LogInformation($"ServiceUri: {serviceUri}");
+
+app.UseMetricServer();
+app.UseHttpMetrics();
+var failed_requests = Metrics.CreateCounter("failed_requests", "Total number of failed requests made");
 
 app.MapGet("/version", () =>
 {
@@ -29,6 +37,7 @@ app.MapGet("/{id}", async (string id) =>
     }
     catch (Exception ex)
     {
+        failed_requests.Inc();
         app.Logger.LogError(ex, "Unable to reach service.");
         return Results.StatusCode(503);
     }
