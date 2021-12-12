@@ -1,0 +1,17 @@
+name: Build manul
+
+on:
+  push:
+    branches: [dotnet]
+  pull_request:
+    branches: [dotnet]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build the Docker image
+        working-directory: sre/service
+        run: docker build . --file Dockerfile --tag manul:latest
